@@ -1,0 +1,35 @@
+name: AWS IAM Assessment and SARIF Conversion
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  assess_and_convert:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install AWS CLI
+      run: |
+        pip install awscli
+        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws configure set default.region us-west-2
+
+    - name: Run Assessment and SARIF Conversion
+      run: python iamverify-v2.py
+
+    - name: Upload SARIF Report
+      uses: actions/upload-artifact@v2
+      with:
+        name: sarif-report
+        path: aws_iam_assessment.sarif
